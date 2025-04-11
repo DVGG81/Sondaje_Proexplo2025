@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>¿Cómo logearías este sondaje?</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 0; background: #f4f4f4; }
+    canvas { border: 2px solid #333; margin-top: 10px; touch-action: none; }
+    .toolbar { margin-top: 20px; }
+    select, textarea, button { margin: 10px; padding: 5px; font-size: 16px; }
+    .label { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>¿Cómo logearías este sondaje?</h2>
+  <p>Utiliza los colores para marcar tus descripciones</p>
+
+  <div class="toolbar">
+    <span class="label">Color:</span>
+    <button onclick="setColor('red')">Fractura (Rojo)</button>
+    <button onclick="setColor('blue')">Molido (Azul)</button>
+    <button onclick="setColor('black')">Otros (Negro)</button>
+    <button onclick="clearCanvas()">Limpiar</button>
+  </div>
+
+  <canvas id="canvas" width="1024" height="143"></canvas><br>
+
+  <div class="toolbar">
+    <span class="label">Profesión:</span>
+    <select id="profesion">
+      <option value="">Seleccione</option>
+      <option value="Geólogo">Geólogo</option>
+      <option value="Minero">Minero</option>
+      <option value="Técnico">Técnico</option>
+      <option value="Otro">Otro</option>
+    </select>
+
+    <span class="label">Nivel:</span>
+    <select id="nivel">
+      <option value="">Seleccione</option>
+      <option value="Estudiante">Estudiante</option>
+      <option value="Junior">Junior</option>
+      <option value="Senior">Senior</option>
+      <option value="Otro">Otro</option>
+    </select><br>
+
+    <textarea id="comentarios" rows="3" cols="60" placeholder="Comentarios (RQD, observaciones, etc.)"></textarea><br>
+    <button onclick="enviarImagen()">Enviar</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.src = 'sondaje.png';
+    img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    let drawing = false;
+    let color = 'red';
+
+    // Eventos para ratón y touch
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('touchstart', start);
+    canvas.addEventListener('mouseup', end);
+    canvas.addEventListener('touchend', end);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('touchmove', drawTouch, { passive: false });
+
+    function setColor(c) {
+      color = c;
+    }
+
+    function start(e) {
+      drawing = true;
+      ctx.beginPath();
+      ctx.moveTo(getX(e), getY(e));
+    }
+
+    function end() {
+      drawing = false;
+    }
+
+    function draw(e) {
+      if (!drawing) return;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.lineTo(getX(e), getY(e));
+      ctx.stroke();
+    }
+
+    function drawTouch(e) {
+      e.preventDefault();
+      if (!drawing) return;
+      let touch = e.touches[0];
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.lineTo(touch.clientX - canvas.offsetLeft, touch.clientY - canvas.offsetTop);
+      ctx.stroke();
+    }
+
+    function getX(e) {
+      return e.clientX - canvas.offsetLeft;
+    }
+
+    function getY(e) {
+      return e.clientY - canvas.offsetTop;
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    }
+
+    function enviarImagen() {
+      // Recoger metadatos de los formularios
+      const profesion = document.getElementById('profesion').value;
+      const nivel = document.getElementById('nivel').value;
+      const comentarios = document.getElementById('comentarios').value;
+
+      // Crear nombre de la imagen basado en el timestamp para que sea único
+      const timestamp = Date.now();
+      const nombreImagen = `log_sondaje_${timestamp}.png`;
+
+      // Convertir el canvas a imagen en formato data URL
+      const imageData = canvas.toDataURL('image/png');
+
+      // Aquí se debería implementar la lógica para guardar la imagen en OneDrive
+      // y registrar los datos (nombre de imagen, profesión, nivel y comentarios)
+      // en un archivo Excel. Esto requerirá una integración con una API o backend que
+      // conecte con Microsoft Graph API para OneDrive y Excel.
+      //
+      // Ejemplo de pseudocódigo para la integración:
+      /*
+      fetch('https://tu-backend-api.com/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          nombreImagen: nombreImagen,
+          imageData: imageData,
+          profesion: profesion,
+          nivel: nivel,
+          comentarios: comentarios
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert("¡Gracias por participar! Tu imagen ha sido guardada correctamente.");
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert("Hubo un error al guardar tu imagen.");
+      });
+      */
+
+      // Por el momento, mostramos un mensaje de confirmación.
+      alert("¡Gracias por participar! Se ha enviado tu imagen (función de guardado pendiente).");
+    }
+  </script>
+</body>
+</html>
